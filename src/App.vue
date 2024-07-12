@@ -7,15 +7,22 @@
       </div>
     </div>
     <div class="right">
-              
       <div class="tabs-list">
-        <div class="tab-item" :class="item == tabs.current? 'active': ''" v-for="(item) in Object.keys(tabs.list)" :key="item">
-          <label :for="item"> {{ item }}</label>
-          <span @click="closeTab(item)" class="iconfont icon-RectangleCopy"></span>
+        <div
+          class="tab-item"
+          @click="handleCurrentTab(item)"
+          :class="item == tabs.current ? 'active' : ''"
+          v-for="item in Object.keys(tabs.list)"
+          :key="item"
+        >
+          <div class="tab-label">
+            <label :for="item"> {{ item }}</label>
+            <span @click="closeTab(item)" class="iconfont icon-RectangleCopy"></span>
+          </div>
         </div>
       </div>
       <br />
-      <div v-for="(item) in Object.keys(tabs.list)" :key="item">
+      <div v-for="item in Object.keys(tabs.list)" :key="item">
         <EditView :itemId="item" :item="tabs.list[item]" :current="tabs.current"></EditView>
       </div>
     </div>
@@ -23,14 +30,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive,  provide } from 'vue';
-import FileTree from './components/FileTree.vue';
-import EditView from './components/EditView.vue';
+import { reactive, provide } from 'vue'
+import FileTree from './components/FileTree.vue'
+import EditView from './components/EditView.vue'
 
 declare global {
   interface Window {
-    showOpenFilePicker: Function,
-    showDirectoryPicker: Function,
+    showOpenFilePicker: Function
+    showDirectoryPicker: Function
   }
 
   interface FileSystemFileHandle {
@@ -46,8 +53,8 @@ declare global {
   }
 }
 
-interface tabItemObject{
-  [val:string]: string 
+interface tabItemObject {
+  [val: string]: string
 }
 
 interface tabItemProps {
@@ -58,39 +65,38 @@ interface tabItemProps {
 let directoryFile = reactive<directoryFile>({
   file: [],
   directory: []
-}); 
-let picker: FileSystemDirectoryHandle;
+})
+let picker: FileSystemDirectoryHandle
 let tabs = reactive<tabItemProps>({
   current: '1',
   list: {}
 })
- 
 
 // 选择文件
 provide('updateFileContent', async function (content: string, file: FileSystemFileHandle) {
-  let filePath = await picker.resolve(file);
-  let path:string = filePath?.join('/') || '';
+  let filePath = await picker.resolve(file)
+  let path: string = filePath?.join('/') || ''
   if (tabs.list[path]) {
-    tabs.current = path;
-  } else { 
-    tabs.current = path;
+    tabs.current = path
+  } else {
+    tabs.current = path
     tabs.list[path] = content
-  } 
-  console.log(tabs.list);
+  }
+  console.log(tabs.list)
 })
 
 // 关闭单个标签页
-function closeTab(item:any){
-  delete tabs.list[item];
+function closeTab(item: any) {
+  delete tabs.list[item]
 }
 
 // 打开文件
 async function openFilePicker() {
   let pickerFlod = await window.showDirectoryPicker()
   let { directory, file } = await getDirectorFile(pickerFlod)
-  directoryFile.directory = directory;
-  directoryFile.file = file;
-  picker = pickerFlod;
+  directoryFile.directory = directory
+  directoryFile.file = file
+  picker = pickerFlod
 }
 
 // 打开文件夹
@@ -98,21 +104,26 @@ async function getDirectorFile(directory: FileSystemDirectoryHandle) {
   let directoryFile: directoryFile = {
     file: [],
     directory: []
-  };
+  }
   for await (const [name, handle] of directory.entries()) {
     if (handle.kind === 'file') {
-      const fileHandle = await directory.getFileHandle(name);
+      const fileHandle = await directory.getFileHandle(name)
       directoryFile.file.push(fileHandle)
     } else {
-      const directoryHandle = await directory.getDirectoryHandle(name);
+      const directoryHandle = await directory.getDirectoryHandle(name)
       directoryFile.directory.push(directoryHandle)
     }
   }
-  return directoryFile;
+  return directoryFile
+}
+
+// 选择当前页签
+function handleCurrentTab(item: string) {
+  tabs.current = item
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .view {
   display: flex;
   height: 100vh;
@@ -147,6 +158,9 @@ async function getDirectorFile(directory: FileSystemDirectoryHandle) {
         :hover {
           background-color: #ccc;
         }
+      }
+      .active {
+        background: #ccc;
       }
     }
   }
